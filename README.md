@@ -63,4 +63,3 @@ npm run dev
 ```
 
 Configure `frontend/.env` com `VITE_API_URL` apontando para o backend.
-=======
