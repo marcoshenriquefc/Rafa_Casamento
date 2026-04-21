@@ -52,3 +52,15 @@ API inicial em Node.js + Express + MongoDB Atlas para:
   - enviando `companionIds` marcados como presentes na entrada.
 
 > O leitor de câmera QR é implementado no front-end (Vue), usando bibliotecas como `html5-qrcode` ou `@zxing/browser`.
+## Front-end (Vue)
+
+O front-end foi criado na pasta `frontend/` com integração completa da API.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Configure `frontend/.env` com `VITE_API_URL` apontando para o backend.
+=======
