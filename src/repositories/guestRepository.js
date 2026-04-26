@@ -6,4 +6,5 @@ export const guestRepository = {
   findByInvitationCode: (invitationCode) => GuestModel.findOne({ invitationCode }),
   list: () => GuestModel.find().sort({ createdAt: -1 }),
   save: (guest) => guest.save(),
+  deleteByInvitationCode: (invitationCode) => GuestModel.findOneAndDelete({ invitationCode }),
 };

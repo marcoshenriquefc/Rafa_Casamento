@@ -375,7 +375,90 @@ Retorna objeto `Guest` completo.
 
 ---
 
-### 8.2.3 Gerar PDF do convite (ADMIN/NOIVOS)
+### 8.2.3 Buscar convidado por `invitationCode` (ADMIN/NOIVOS/PORTEIRO)
+
+**GET** `/api/guests/:invitationCode`
+
+#### Headers
+
+`Authorization: Bearer <token>`
+
+#### Resposta 200
+
+Objeto `Guest` correspondente ao convite.
+
+#### Erros comuns
+
+- `404`: convidado não encontrado
+
+---
+
+### 8.2.4 Atualizar convidado por `invitationCode` (ADMIN/NOIVOS)
+
+**PATCH** `/api/guests/:invitationCode`
+
+#### Headers
+
+`Authorization: Bearer <token>`
+
+#### Body (enviar ao menos um campo)
+
+```json
+{
+  "name": "João da Silva",
+  "email": "joao@email.com",
+  "companions": [
+    { "name": "Maria" }
+  ]
+}
+```
+
+#### Regras
+
+- Aceita atualização parcial de `name`, `email` e `companions`.
+- Ao alterar o email, o usuário vinculado ao convidado também é atualizado.
+
+#### Resposta 200
+
+Objeto `Guest` atualizado.
+
+#### Erros comuns
+
+- `400`: nenhum campo enviado para atualização
+- `404`: convidado não encontrado
+- `409`: email já em uso por outro convidado
+
+---
+
+### 8.2.5 Apagar convidado por `invitationCode` (ADMIN/NOIVOS)
+
+**DELETE** `/api/guests/:invitationCode`
+
+#### Headers
+
+`Authorization: Bearer <token>`
+
+#### Resposta 200
+
+```json
+{
+  "deleted": true,
+  "invitationCode": "uuid"
+}
+```
+
+#### Regras
+
+- Remove o convidado.
+- Se existir usuário vinculado com role `CONVIDADO`, ele também é removido.
+
+#### Erros comuns
+
+- `404`: convidado não encontrado
+
+---
+
+### 8.2.6 Gerar PDF do convite (ADMIN/NOIVOS)
 
 **GET** `/api/guests/:invitationCode/invitation-pdf`
 
@@ -400,7 +483,7 @@ Retorna objeto `Guest` completo.
 
 ---
 
-### 8.2.4 Login no portal via convite
+### 8.2.7 Login no portal via convite
 
 **POST** `/api/guests/:invitationCode/login`
 
@@ -436,7 +519,7 @@ Retorna objeto `Guest` completo.
 
 ---
 
-### 8.2.5 Check-in de entrada (ADMIN/PORTEIRO)
+### 8.2.8 Check-in de entrada (ADMIN/PORTEIRO)
 
 **POST** `/api/guests/:invitationCode/check-in`
 
@@ -563,7 +646,8 @@ Status comuns:
   - `login`: `email`, `password(min 5)`
 - Guest:
   - criação com lista de acompanhantes
-  - `invitationCode` como UUID
+  - busca/remoção por `invitationCode` (UUID)
+  - atualização parcial com ao menos um campo (`name`, `email`, `companions`)
   - senha do convite com 5 dígitos
   - `companionIds` no check-in
 - Gift:

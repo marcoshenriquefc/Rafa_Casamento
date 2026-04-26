@@ -11,6 +11,22 @@ export const createGuestSchema = z.object({
   query: z.object({}).optional(),
 });
 
+export const updateGuestSchema = z.object({
+  params: z.object({
+    invitationCode: z.string().uuid(),
+  }),
+  body: z
+    .object({
+      name: z.string().min(2).optional(),
+      email: z.string().email().optional(),
+      companions: z.array(companionSchema).optional(),
+    })
+    .refine((data) => data.name !== undefined || data.email !== undefined || data.companions !== undefined, {
+      message: 'Informe ao menos um campo para atualização.',
+    }),
+  query: z.object({}).optional(),
+});
+
 export const invitationCodeParamSchema = z.object({
   params: z.object({
     invitationCode: z.string().uuid(),

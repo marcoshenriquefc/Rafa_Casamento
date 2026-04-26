@@ -7,6 +7,7 @@ import {
   createGuestSchema,
   guestPortalAuthSchema,
   invitationCodeParamSchema,
+  updateGuestSchema,
 } from '../validators/guestSchemas.js';
 import { USER_ROLES } from '../models/User.js';
 
@@ -14,6 +15,27 @@ export const guestRoutes = Router();
 
 guestRoutes.get('/', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.NOIVOS), guestController.list);
 guestRoutes.post('/', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.NOIVOS), validate(createGuestSchema), guestController.create);
+guestRoutes.get(
+  '/:invitationCode',
+  authenticate,
+  authorize(USER_ROLES.ADMIN, USER_ROLES.NOIVOS, USER_ROLES.PORTEIRO),
+  validate(invitationCodeParamSchema),
+  guestController.getByInvitationCode,
+);
+guestRoutes.patch(
+  '/:invitationCode',
+  authenticate,
+  authorize(USER_ROLES.ADMIN, USER_ROLES.NOIVOS),
+  validate(updateGuestSchema),
+  guestController.updateByInvitationCode,
+);
+guestRoutes.delete(
+  '/:invitationCode',
+  authenticate,
+  authorize(USER_ROLES.ADMIN, USER_ROLES.NOIVOS),
+  validate(invitationCodeParamSchema),
+  guestController.deleteByInvitationCode,
+);
 guestRoutes.get(
   '/:invitationCode/invitation-pdf',
   authenticate,

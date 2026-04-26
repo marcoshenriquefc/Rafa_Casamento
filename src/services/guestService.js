@@ -43,6 +43,59 @@ export const guestService = {
     return guest;
   },
 
+  async getGuestByInvitationCode(invitationCode) {
+    const guest = await guestRepository.findByInvitationCode(invitationCode);
+    if (!guest) {
+      throw new HttpError(404, 'Convidado não encontrado.');
+    }
+
+    return guest;
+  },
+
+  async updateGuestByInvitationCode(invitationCode, payload) {
+    const guest = await guestRepository.findByInvitationCode(invitationCode);
+    if (!guest) {
+      throw new HttpError(404, 'Convidado não encontrado.');
+    }
+
+    if (payload.email && payload.email !== guest.email) {
+      const emailAlreadyUsedByGuest = await guestRepository.findByEmail(payload.email);
+      if (emailAlreadyUsedByGuest && String(emailAlreadyUsedByGuest._id) !== String(guest._id)) {
+        throw new HttpError(409, 'Email já está em uso por outro convidado.');
+      }
+
+      const linkedUser = guest.linkedUser ? await userRepository.findById(guest.linkedUser) : null;
+      if (linkedUser) {
+        linkedUser.email = payload.email;
+        await userRepository.save(linkedUser);
+      }
+    }
+
+    if (payload.name !== undefined) guest.name = payload.name;
+    if (payload.email !== undefined) guest.email = payload.email;
+    if (payload.companions !== undefined) guest.companions = payload.companions;
+
+    await guestRepository.save(guest);
+    return guest;
+  },
+
+  async deleteGuestByInvitationCode(invitationCode) {
+    const guest = await guestRepository.findByInvitationCode(invitationCode);
+    if (!guest) {
+      throw new HttpError(404, 'Convidado não encontrado.');
+    }
+
+    if (guest.linkedUser) {
+      const linkedUser = await userRepository.findById(guest.linkedUser);
+      if (linkedUser?.role === USER_ROLES.CONVIDADO) {
+        await userRepository.deleteById(linkedUser.id);
+      }
+    }
+
+    await guestRepository.deleteByInvitationCode(invitationCode);
+    return { deleted: true, invitationCode };
+  },
+
   async generateInvitationPdf(invitationCode) {
     const guest = await guestRepository.findByInvitationCode(invitationCode);
     if (!guest) {

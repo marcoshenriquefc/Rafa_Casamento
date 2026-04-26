@@ -22,6 +22,36 @@ export const guestController = {
     }
   },
 
+  async getByInvitationCode(req, res, next) {
+    try {
+      const { invitationCode } = req.validated.params;
+      const guest = await guestService.getGuestByInvitationCode(invitationCode);
+      return res.status(200).json(guest);
+    } catch (error) {
+      return next(error);
+    }
+  },
+
+  async updateByInvitationCode(req, res, next) {
+    try {
+      const { invitationCode } = req.validated.params;
+      const guest = await guestService.updateGuestByInvitationCode(invitationCode, req.validated.body);
+      return res.status(200).json(guest);
+    } catch (error) {
+      return next(error);
+    }
+  },
+
+  async deleteByInvitationCode(req, res, next) {
+    try {
+      const { invitationCode } = req.validated.params;
+      const result = await guestService.deleteGuestByInvitationCode(invitationCode);
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  },
+
   async generatePdf(req, res, next) {
     try {
       const { invitationCode } = req.validated.params;
