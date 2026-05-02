@@ -20,41 +20,34 @@ export const giftService = {
     return giftRepository.listActive();
   },
 
-  async createCheckout({ invitationCode, items }) {
+  async createCheckout({ invitationCode, giftId, quantity = 1 }) {
     const guest = await guestRepository.findByInvitationCode(invitationCode);
     if (!guest) throw new HttpError(404, 'Convidado não encontrado para este convite.');
-    if (!items?.length) throw new HttpError(400, 'Informe ao menos um item para checkout.');
 
-    const orderItems = [];
-    let totalAmount = 0;
+    const gift = await giftRepository.findById(giftId);
+    if (!gift || !gift.active) throw new HttpError(404, 'Presente não encontrado.');
+    validateStock(gift, quantity);
 
-    for (const item of items) {
-      const gift = await giftRepository.findById(item.giftId);
-      if (!gift || !gift.active) throw new HttpError(404, 'Presente não encontrado.');
-      validateStock(gift, item.quantity);
-
-      const subtotal = Number(gift.price) * item.quantity;
-      totalAmount += subtotal;
-      orderItems.push({
-        gift: gift.id,
-        title: gift.title,
-        unitPrice: Number(gift.price),
-        quantity: item.quantity,
-        subtotal,
-      });
-    }
+    const subtotal = Number(gift.price) * quantity;
+    const orderItems = [{
+      gift: gift.id,
+      title: gift.title,
+      unitPrice: Number(gift.price),
+      quantity,
+      subtotal,
+    }];
 
     const externalReference = `${invitationCode}:${Date.now()}`;
     const order = await orderRepository.create({
       guest: guest.id,
       invitationCode,
       items: orderItems,
-      totalAmount,
+      totalAmount: subtotal,
       externalReference,
       status: ORDER_STATUS.PENDING,
     });
 
-    const mpItems = orderItems.map((i) => ({ id: String(i.gift), title: i.title, quantity: i.quantity, currency_id: 'BRL', unit_price: i.unitPrice }));
+    const mpItems = [{ id: String(gift.id), title: gift.title, quantity, currency_id: 'BRL', unit_price: Number(gift.price) }];
     const preference = await mercadoPagoService.createGiftPreference({ guest, items: mpItems, externalReference });
 
     order.preferenceId = preference.id;
@@ -62,6 +55,13 @@ export const giftService = {
 
     return {
       orderId: order.id,
+      gift: {
+        id: gift.id,
+        title: gift.title,
+        unitPrice: Number(gift.price),
+        quantity,
+      },
+      totalAmount: subtotal,
       checkoutUrl: preference.init_point,
       sandboxCheckoutUrl: preference.sandbox_init_point,
       preferenceId: preference.id,
