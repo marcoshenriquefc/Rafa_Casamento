@@ -1,69 +1,31 @@
-# Backend - Casamento (Convidados + Presentes)
+# Backend - Casamento (Convidados + E-commerce de Presentes)
 
-API inicial em Node.js + Express + MongoDB Atlas para:
+API Node.js + Express + MongoDB para gestão de convidados e um módulo de e-commerce de presentes com checkout Mercado Pago.
+
+## Recursos
 - Login com roles (`ADMIN`, `NOIVOS`, `PORTEIRO`, `CONVIDADO`)
-- Cadastro de convidados e acompanhantes
-- Geração de convite em PDF com QR Code
-- Login do convidado por `ID do convite + senha de 5 dígitos`
-- Listagem de presentes e seleção (reserva) por convidado
-- Check-in na entrada por leitura de QR code (porteiro)
-
-## Stack
-- Node.js
-- Express
-- MongoDB/Mongoose
-- JWT
-- PDFKit + QRCode
+- Cadastro de convidados + convite PDF com QRCode
+- Check-in por QRCode
+- Catálogo de presentes
+- Checkout de presentes com Mercado Pago
+- Pedidos e conciliação de pagamento via webhook
 
 ## Como rodar
-1. Copie o `.env.example` para `.env` e preencha.
-2. Instale dependências:
-   ```bash
-   npm install
-   ```
-3. Inicie a API:
-   ```bash
-   npm run dev
-   ```
+1. Copie `.env.example` para `.env`.
+2. Instale dependências: `npm install`
+3. Suba API: `npm run dev`
 
-## Rotas principais
+## E-commerce de presentes (novo)
+### Fluxo
+1. Front chama `POST /api/gifts/checkout` com `invitationCode` e `items`.
+2. API cria pedido `PENDING` e preferência no Mercado Pago.
+3. Front redireciona para `checkoutUrl`.
+4. Mercado Pago chama webhook `POST /api/gifts/payments/webhook`.
+5. API valida pagamento; se `approved`, marca pedido como `PAID` e reserva os presentes.
 
-### Auth
-- `POST /api/auth/register`
-- `POST /api/auth/login`
+### Endpoints principais
+- `POST /api/gifts/checkout`
+- `POST /api/gifts/payments/webhook`
+- `GET /api/gifts/orders/:invitationCode`
 
-### Convidados
-- `GET /api/guests` (ADMIN, NOIVOS)
-- `POST /api/guests` (ADMIN, NOIVOS)
-- `GET /api/guests/:invitationCode` (ADMIN, NOIVOS, PORTEIRO)
-- `PATCH /api/guests/:invitationCode` (ADMIN, NOIVOS)
-- `DELETE /api/guests/:invitationCode` (ADMIN, NOIVOS)
-- `GET /api/guests/:invitationCode/invitation-pdf` (ADMIN, NOIVOS)
-- `POST /api/guests/:invitationCode/login` (público, senha de 5 dígitos)
-- `POST /api/guests/:invitationCode/check-in` (ADMIN, PORTEIRO)
-
-### Presentes
-- `GET /api/gifts` (público)
-- `POST /api/gifts` (ADMIN, NOIVOS)
-- `POST /api/gifts/select` (público com invitationCode)
-
-## Fluxo para QR Code e check-in
-- O PDF contém QR Code para `FRONTEND_BASE_URL/convite/:invitationCode`.
-- No front-end da portaria, a aba "Ler QR Code" deve abrir a câmera do celular e decodificar o `invitationCode`.
-- Após ler, o front chama:
-  - `POST /api/guests/:invitationCode/check-in`
-  - enviando `companionIds` marcados como presentes na entrada.
-
-> O leitor de câmera QR é implementado no front-end (Vue), usando bibliotecas como `html5-qrcode` ou `@zxing/browser`.
-
-## Front-end (Vue)
-
-O front-end foi criado na pasta `frontend/` com integração completa da API.
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Configure `frontend/.env` com `VITE_API_URL` apontando para o backend.
+> Documentação completa em `API_DOCUMENTACAO.md`.
