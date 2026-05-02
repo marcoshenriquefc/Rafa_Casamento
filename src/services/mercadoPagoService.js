@@ -33,6 +33,27 @@ export const mercadoPagoService = {
     return response;
   },
 
+
+  async createGenericPreference({ payer, items, externalReference, metadata = {}, backUrls }) {
+    const client = getClient();
+    const preference = new Preference(client);
+
+    return preference.create({
+      body: {
+        items,
+        payer,
+        external_reference: externalReference,
+        metadata,
+        notification_url: process.env.MP_WEBHOOK_URL,
+        back_urls: backUrls || {
+          success: process.env.MP_SUCCESS_URL,
+          failure: process.env.MP_FAILURE_URL,
+          pending: process.env.MP_PENDING_URL,
+        },
+        auto_return: 'approved',
+      },
+    });
+  },
   async getPayment(paymentId) {
     const client = getClient();
     const payment = new Payment(client);
