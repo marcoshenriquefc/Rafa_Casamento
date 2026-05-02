@@ -12,12 +12,20 @@ export const createGiftSchema = z.object({
   query: z.object({}).optional(),
 });
 
-export const selectGiftSchema = z.object({
+export const checkoutGiftSchema = z.object({
   body: z.object({
     invitationCode: z.string().uuid(),
-    giftId: z.string().min(12),
-    quantity: z.number().int().positive(),
+    items: z.array(z.object({
+      giftId: z.string().min(12),
+      quantity: z.number().int().positive(),
+    })).min(1),
   }),
   params: z.object({}).optional(),
+  query: z.object({}).optional(),
+});
+
+export const listOrdersSchema = z.object({
+  params: z.object({ invitationCode: z.string().uuid() }),
+  body: z.object({}).optional(),
   query: z.object({}).optional(),
 });

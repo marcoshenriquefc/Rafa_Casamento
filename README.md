@@ -1,69 +1,44 @@
-# Backend - Casamento (Convidados + Presentes)
+# Backend - Casamento (Convidados + E-commerce Mercado Pago)
 
-API inicial em Node.js + Express + MongoDB Atlas para:
-- Login com roles (`ADMIN`, `NOIVOS`, `PORTEIRO`, `CONVIDADO`)
-- Cadastro de convidados e acompanhantes
-- Geração de convite em PDF com QR Code
-- Login do convidado por `ID do convite + senha de 5 dígitos`
-- Listagem de presentes e seleção (reserva) por convidado
-- Check-in na entrada por leitura de QR code (porteiro)
+API em Node.js/Express com módulo de convidados e módulo de pagamento via Mercado Pago.
 
-## Stack
-- Node.js
-- Express
-- MongoDB/Mongoose
-- JWT
-- PDFKit + QRCode
+## Integração com qualquer frontend Vue.js
+Além das rotas de presentes do projeto, existe uma rota **genérica** para qualquer app Vue:
 
-## Como rodar
-1. Copie o `.env.example` para `.env` e preencha.
-2. Instale dependências:
-   ```bash
-   npm install
-   ```
-3. Inicie a API:
-   ```bash
-   npm run dev
-   ```
+- `POST /api/payments/preferences`
 
-## Rotas principais
+Essa rota cria uma preferência no Mercado Pago via SDK e devolve `checkoutUrl` para o front redirecionar o usuário.
 
-### Auth
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-
-### Convidados
-- `GET /api/guests` (ADMIN, NOIVOS)
-- `POST /api/guests` (ADMIN, NOIVOS)
-- `GET /api/guests/:invitationCode` (ADMIN, NOIVOS, PORTEIRO)
-- `PATCH /api/guests/:invitationCode` (ADMIN, NOIVOS)
-- `DELETE /api/guests/:invitationCode` (ADMIN, NOIVOS)
-- `GET /api/guests/:invitationCode/invitation-pdf` (ADMIN, NOIVOS)
-- `POST /api/guests/:invitationCode/login` (público, senha de 5 dígitos)
-- `POST /api/guests/:invitationCode/check-in` (ADMIN, PORTEIRO)
-
-### Presentes
-- `GET /api/gifts` (público)
-- `POST /api/gifts` (ADMIN, NOIVOS)
-- `POST /api/gifts/select` (público com invitationCode)
-
-## Fluxo para QR Code e check-in
-- O PDF contém QR Code para `FRONTEND_BASE_URL/convite/:invitationCode`.
-- No front-end da portaria, a aba "Ler QR Code" deve abrir a câmera do celular e decodificar o `invitationCode`.
-- Após ler, o front chama:
-  - `POST /api/guests/:invitationCode/check-in`
-  - enviando `companionIds` marcados como presentes na entrada.
-
-> O leitor de câmera QR é implementado no front-end (Vue), usando bibliotecas como `html5-qrcode` ou `@zxing/browser`.
-
-## Front-end (Vue)
-
-O front-end foi criado na pasta `frontend/` com integração completa da API.
-
-```bash
-cd frontend
-npm install
-npm run dev
+### Exemplo de payload
+```json
+{
+  "payer": { "name": "Maria", "email": "maria@email.com" },
+  "items": [
+    { "id": "gift-123", "title": "Jogo de Panelas", "quantity": 1, "unit_price": 350, "currency_id": "BRL" }
+  ],
+  "externalReference": "pedido-vue-001",
+  "backUrls": {
+    "success": "https://app-vue.com/pagamento/sucesso",
+    "failure": "https://app-vue.com/pagamento/falha",
+    "pending": "https://app-vue.com/pagamento/pendente"
+  }
+}
 ```
 
-Configure `frontend/.env` com `VITE_API_URL` apontando para o backend.
+### Resposta
+```json
+{
+  "preferenceId": "...",
+  "checkoutUrl": "https://...",
+  "sandboxCheckoutUrl": "https://...",
+  "externalReference": "pedido-vue-001"
+}
+```
+
+## Variáveis de ambiente
+Use `.env.example` como base. Obrigatório para pagamentos:
+- `MP_ACCESS_TOKEN`
+- `MP_WEBHOOK_URL`
+- `MP_SUCCESS_URL`
+- `MP_FAILURE_URL`
+- `MP_PENDING_URL`
