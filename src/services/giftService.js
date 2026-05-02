@@ -20,7 +20,9 @@ export const giftService = {
     return giftRepository.listActive();
   },
 
-  async createCheckout({ invitationCode, giftId, quantity = 1 }) {
+  async createCheckout({ invitationCode, giftId}) {
+    const quantity = 1; // Para simplificar, cada checkout é para um presente. Pode ser expandido para múltiplos itens no futuro.
+
     const guest = await guestRepository.findByInvitationCode(invitationCode);
     if (!guest) throw new HttpError(404, 'Convidado não encontrado para este convite.');
 
@@ -47,7 +49,13 @@ export const giftService = {
       status: ORDER_STATUS.PENDING,
     });
 
-    const mpItems = [{ id: String(gift.id), title: gift.title, quantity, currency_id: 'BRL', unit_price: Number(gift.price) }];
+    const mpItems = [{
+      id: String(gift.id),
+      title: gift.title,
+      quantity,
+      currency_id: 'BRL',
+      unit_price: Number(gift.price)
+    }];
     const preference = await mercadoPagoService.createGiftPreference({ guest, items: mpItems, externalReference });
 
     order.preferenceId = preference.id;
