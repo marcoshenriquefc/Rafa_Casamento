@@ -16,12 +16,12 @@
     </div>
 
     <div class="card" style="max-width:540px;">
-      <h3>Escolher presente</h3>
+      <h3>Presentear os noivos</h3>
       <div class="grid">
         <div><label>ID do convite</label><input v-model="form.invitationCode" /></div>
         <div><label>ID do presente</label><input v-model="form.giftId" /></div>
         <div><label>Quantidade</label><input v-model.number="form.quantity" type="number" min="1" /></div>
-        <button @click="reserve">Confirmar presente</button>
+        <button @click="pay">Ir para pagamento Mercado Pago</button>
         <p class="error" v-if="error">{{ error }}</p>
         <p class="success" v-if="success">{{ success }}</p>
       </div>
@@ -43,15 +43,19 @@ const load = async () => {
   gifts.value = data;
 };
 
-const reserve = async () => {
+const pay = async () => {
   try {
     error.value = '';
     success.value = '';
-    await giftService.select(form);
-    success.value = 'Presente reservado com sucesso!';
-    await load();
+    const { data } = await giftService.checkout(form);
+    if (!data.checkoutUrl) {
+      throw new Error('Link de pagamento não foi retornado.');
+    }
+
+    success.value = 'Redirecionando para o Mercado Pago...';
+    window.location.href = data.checkoutUrl;
   } catch (err) {
-    error.value = err.response?.data?.message || 'Falha ao reservar presente';
+    error.value = err.response?.data?.message || 'Falha ao iniciar pagamento';
   }
 };
 
