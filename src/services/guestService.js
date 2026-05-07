@@ -12,7 +12,11 @@ import { hashPassword } from '../utils/security.js';
 
 export const guestService = {
   async createGuest({ name, email, companions, createdBy }) {
-    const invitationCode = buildInvitationCode();
+    let invitationCode = buildInvitationCode();
+    while (await guestRepository.findByInvitationCode(invitationCode)) {
+      invitationCode = buildInvitationCode();
+    }
+
     const invitationPassword = buildInvitationPassword();
     const qrPayload = buildGuestPortalUrl(invitationCode);
 
@@ -115,6 +119,44 @@ export const guestService = {
     return guestRepository.list();
   },
 
+
+  async listAttendanceSummary() {
+    const guests = await guestRepository.listByAttendanceStatus();
+
+    const confirmed = guests
+      .filter((g) => g.attendanceConfirmedAt)
+      .map((g) => ({
+        id: g.id,
+        invitationCode: g.invitationCode,
+        name: g.name,
+        email: g.email,
+        attendanceConfirmedAt: g.attendanceConfirmedAt,
+        companionsConfirmed: g.companions.filter((c) => c.attendanceConfirmedAt).length,
+        companionsTotal: g.companions.length,
+      }));
+
+    const notConfirmed = guests
+      .filter((g) => !g.attendanceConfirmedAt)
+      .map((g) => ({
+        id: g.id,
+        invitationCode: g.invitationCode,
+        name: g.name,
+        email: g.email,
+        companionsConfirmed: g.companions.filter((c) => c.attendanceConfirmedAt).length,
+        companionsTotal: g.companions.length,
+      }));
+
+    return {
+      totals: {
+        confirmedGuests: confirmed.length,
+        notConfirmedGuests: notConfirmed.length,
+        allGuests: guests.length,
+      },
+      confirmed,
+      notConfirmed,
+    };
+  },
+
   async checkInByInvitationCode(invitationCode, companionIds = []) {
     const guest = await guestRepository.findByInvitationCode(invitationCode);
     if (!guest) {
@@ -130,6 +172,32 @@ export const guestService = {
 
     await guestRepository.save(guest);
     return guest;
+  },
+
+
+  async confirmAttendanceByInvitation({ invitationCode, invitationPassword, companionIds = [] }) {
+    const guest = await guestRepository.findByInvitationCode(invitationCode);
+    if (!guest || guest.invitationPassword !== invitationPassword) {
+      throw new HttpError(401, 'ID do convite ou senha inválidos.');
+    }
+
+    guest.attendanceConfirmedAt = guest.attendanceConfirmedAt || new Date();
+    guest.companions.forEach((companion) => {
+      if (companionIds.includes(String(companion._id))) {
+        companion.attendanceConfirmedAt = companion.attendanceConfirmedAt || new Date();
+      }
+    });
+
+    await guestRepository.save(guest);
+
+    return {
+      invitationCode: guest.invitationCode,
+      guestName: guest.name,
+      attendanceConfirmedAt: guest.attendanceConfirmedAt,
+      confirmedCompanions: guest.companions
+        .filter((c) => c.attendanceConfirmedAt)
+        .map((c) => ({ id: c._id, name: c.name, attendanceConfirmedAt: c.attendanceConfirmedAt })),
+    };
   },
 
   async authenticateGuestByInvitation({ invitationCode, invitationPassword }) {
