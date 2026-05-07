@@ -54,3 +54,15 @@ export const checkInSchema = z.object({
   }),
   query: z.object({}).optional(),
 });
+
+
+export const confirmAttendanceSchema = z.object({
+  params: z.object({
+    invitationCode: z.string().uuid(),
+  }),
+  body: z.object({
+    password: z.string().length(5),
+    companionIds: z.array(z.string()).default([]),
+  }),
+  query: z.object({}).optional(),
+});

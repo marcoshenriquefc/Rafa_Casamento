@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 const companionSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
+    attendanceConfirmedAt: { type: Date, default: null },
     checkedInAt: { type: Date, default: null },
   },
   { _id: true },
@@ -14,6 +15,7 @@ const guestSchema = new mongoose.Schema(
     invitationPassword: { type: String, required: true },
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    attendanceConfirmedAt: { type: Date, default: null },
     companions: { type: [companionSchema], default: [] },
     qrPayload: { type: String, required: true },
     checkedInAt: { type: Date, default: null },
