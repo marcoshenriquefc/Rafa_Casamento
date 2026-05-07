@@ -132,6 +132,32 @@ export const guestService = {
     return guest;
   },
 
+
+  async confirmAttendanceByInvitation({ invitationCode, invitationPassword, companionIds = [] }) {
+    const guest = await guestRepository.findByInvitationCode(invitationCode);
+    if (!guest || guest.invitationPassword !== invitationPassword) {
+      throw new HttpError(401, 'ID do convite ou senha inválidos.');
+    }
+
+    guest.attendanceConfirmedAt = guest.attendanceConfirmedAt || new Date();
+    guest.companions.forEach((companion) => {
+      if (companionIds.includes(String(companion._id))) {
+        companion.attendanceConfirmedAt = companion.attendanceConfirmedAt || new Date();
+      }
+    });
+
+    await guestRepository.save(guest);
+
+    return {
+      invitationCode: guest.invitationCode,
+      guestName: guest.name,
+      attendanceConfirmedAt: guest.attendanceConfirmedAt,
+      confirmedCompanions: guest.companions
+        .filter((c) => c.attendanceConfirmedAt)
+        .map((c) => ({ id: c._id, name: c.name, attendanceConfirmedAt: c.attendanceConfirmedAt })),
+    };
+  },
+
   async authenticateGuestByInvitation({ invitationCode, invitationPassword }) {
     const guest = await guestRepository.findByInvitationCode(invitationCode);
     if (!guest || guest.invitationPassword !== invitationPassword) {

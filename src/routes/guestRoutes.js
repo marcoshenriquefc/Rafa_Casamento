@@ -4,6 +4,7 @@ import { authenticate, authorize } from '../middlewares/authMiddleware.js';
 import { validate } from '../middlewares/validateMiddleware.js';
 import {
   checkInSchema,
+  confirmAttendanceSchema,
   createGuestSchema,
   guestPortalAuthSchema,
   invitationCodeParamSchema,
@@ -44,6 +45,7 @@ guestRoutes.get(
   guestController.generatePdf,
 );
 guestRoutes.post('/:invitationCode/login', validate(guestPortalAuthSchema), guestController.invitationLogin);
+guestRoutes.post('/:invitationCode/confirm-attendance', validate(confirmAttendanceSchema), guestController.confirmAttendance);
 guestRoutes.post(
   '/:invitationCode/check-in',
   authenticate,

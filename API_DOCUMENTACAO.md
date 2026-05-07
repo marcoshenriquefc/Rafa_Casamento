@@ -229,6 +229,26 @@ Response:
 ### GET `/api/guests/:invitationCode/invitation-pdf` (ADMIN, NOIVOS)
 Retorna PDF (`Content-Type: application/pdf`).
 
+### POST `/api/guests/:invitationCode/confirm-attendance` (público e seguro)
+Convidado confirma presença usando `invitationCode + password`.
+
+Body:
+```json
+{ "password": "12345", "companionIds": ["..."] }
+```
+
+Response:
+```json
+{
+  "invitationCode": "uuid",
+  "guestName": "João",
+  "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z",
+  "confirmedCompanions": [
+    { "id": "...", "name": "Maria", "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z" }
+  ]
+}
+```
+
 ### POST `/api/guests/:invitationCode/login` (público)
 Body:
 ```json

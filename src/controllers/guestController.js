@@ -83,6 +83,22 @@ export const guestController = {
     }
   },
 
+
+  async confirmAttendance(req, res, next) {
+    try {
+      const { invitationCode } = req.validated.params;
+      const { password, companionIds } = req.validated.body;
+      const result = await guestService.confirmAttendanceByInvitation({
+        invitationCode,
+        invitationPassword: password,
+        companionIds,
+      });
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  },
+
   async checkIn(req, res, next) {
     try {
       const { invitationCode } = req.validated.params;
