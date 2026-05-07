@@ -115,6 +115,44 @@ export const guestService = {
     return guestRepository.list();
   },
 
+
+  async listAttendanceSummary() {
+    const guests = await guestRepository.listByAttendanceStatus();
+
+    const confirmed = guests
+      .filter((g) => g.attendanceConfirmedAt)
+      .map((g) => ({
+        id: g.id,
+        invitationCode: g.invitationCode,
+        name: g.name,
+        email: g.email,
+        attendanceConfirmedAt: g.attendanceConfirmedAt,
+        companionsConfirmed: g.companions.filter((c) => c.attendanceConfirmedAt).length,
+        companionsTotal: g.companions.length,
+      }));
+
+    const notConfirmed = guests
+      .filter((g) => !g.attendanceConfirmedAt)
+      .map((g) => ({
+        id: g.id,
+        invitationCode: g.invitationCode,
+        name: g.name,
+        email: g.email,
+        companionsConfirmed: g.companions.filter((c) => c.attendanceConfirmedAt).length,
+        companionsTotal: g.companions.length,
+      }));
+
+    return {
+      totals: {
+        confirmedGuests: confirmed.length,
+        notConfirmedGuests: notConfirmed.length,
+        allGuests: guests.length,
+      },
+      confirmed,
+      notConfirmed,
+    };
+  },
+
   async checkInByInvitationCode(invitationCode, companionIds = []) {
     const guest = await guestRepository.findByInvitationCode(invitationCode);
     if (!guest) {

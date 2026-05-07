@@ -22,6 +22,16 @@ export const guestController = {
     }
   },
 
+
+  async attendanceSummary(_req, res, next) {
+    try {
+      const summary = await guestService.listAttendanceSummary();
+      return res.status(200).json(summary);
+    } catch (error) {
+      return next(error);
+    }
+  },
+
   async getByInvitationCode(req, res, next) {
     try {
       const { invitationCode } = req.validated.params;

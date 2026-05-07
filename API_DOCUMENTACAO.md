@@ -229,6 +229,41 @@ Response:
 ### GET `/api/guests/:invitationCode/invitation-pdf` (ADMIN, NOIVOS)
 Retorna PDF (`Content-Type: application/pdf`).
 
+### GET `/api/guests/attendance/summary` (ADMIN, NOIVOS)
+Retorna todos os convidados separados por presença confirmada e não confirmada.
+
+Response:
+```json
+{
+  "totals": {
+    "confirmedGuests": 12,
+    "notConfirmedGuests": 8,
+    "allGuests": 20
+  },
+  "confirmed": [
+    {
+      "id": "...",
+      "invitationCode": "uuid",
+      "name": "João",
+      "email": "joao@email.com",
+      "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z",
+      "companionsConfirmed": 1,
+      "companionsTotal": 2
+    }
+  ],
+  "notConfirmed": [
+    {
+      "id": "...",
+      "invitationCode": "uuid",
+      "name": "Ana",
+      "email": "ana@email.com",
+      "companionsConfirmed": 0,
+      "companionsTotal": 1
+    }
+  ]
+}
+```
+
 ### POST `/api/guests/:invitationCode/confirm-attendance` (público e seguro)
 Convidado confirma presença usando `invitationCode + password`.
 
