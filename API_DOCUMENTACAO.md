@@ -99,7 +99,7 @@ Perfis disponíveis:
 ## 5.2 Guest
 ```ts
 {
-  invitationCode: string; // UUID único
+  invitationCode: string; // código numérico de 8 dígitos único
   invitationPassword: string; // 5 dígitos
   name: string;
   email: string; // único
@@ -243,7 +243,7 @@ Response:
   "confirmed": [
     {
       "id": "...",
-      "invitationCode": "uuid",
+      "invitationCode": "12345678",
       "name": "João",
       "email": "joao@email.com",
       "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z",
@@ -254,7 +254,7 @@ Response:
   "notConfirmed": [
     {
       "id": "...",
-      "invitationCode": "uuid",
+      "invitationCode": "12345678",
       "name": "Ana",
       "email": "ana@email.com",
       "companionsConfirmed": 0,
@@ -275,7 +275,7 @@ Body:
 Response:
 ```json
 {
-  "invitationCode": "uuid",
+  "invitationCode": "12345678",
   "guestName": "João",
   "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z",
   "confirmedCompanions": [
@@ -292,7 +292,7 @@ Body:
 Response:
 ```json
 {
-  "invitationCode": "uuid",
+  "invitationCode": "12345678",
   "guestName": "João",
   "email": "joao@email.com",
   "companions": []
@@ -327,7 +327,7 @@ Body:
 ### POST `/api/gifts/checkout`
 Checkout seguro (backend define preço/item):
 ```json
-{ "invitationCode": "uuid", "giftId": "665f...", "quantity": 1 }
+{ "invitationCode": "12345678", "giftId": "665f...", "quantity": 1 }
 ```
 Response:
 ```json
@@ -364,7 +364,7 @@ Sem confiar no front: apenas IDs e quantidade.
 
 Body:
 ```json
-{ "invitationCode": "uuid", "giftId": "665f...", "quantity": 1 }
+{ "invitationCode": "12345678", "giftId": "665f...", "quantity": 1 }
 ```
 
 Response: mesmo contrato de `/api/gifts/checkout`.

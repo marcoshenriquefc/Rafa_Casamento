@@ -12,7 +12,11 @@ import { hashPassword } from '../utils/security.js';
 
 export const guestService = {
   async createGuest({ name, email, companions, createdBy }) {
-    const invitationCode = buildInvitationCode();
+    let invitationCode = buildInvitationCode();
+    while (await guestRepository.findByInvitationCode(invitationCode)) {
+      invitationCode = buildInvitationCode();
+    }
+
     const invitationPassword = buildInvitationPassword();
     const qrPayload = buildGuestPortalUrl(invitationCode);
 
