@@ -1,12 +1,64 @@
 import mongoose from 'mongoose';
 
-export const connectToDatabase = async () => {
-  const mongoUri = process.env.MONGO_URI;
+let cached =
+    global.mongoose;
 
-  if (!mongoUri) {
-    throw new Error('MONGO_URI não configurada.');
-  }
+if (!cached) {
 
-  await mongoose.connect(mongoUri);
-  console.log('MongoDB conectado com sucesso.');
-};
+    cached =
+        global.mongoose = {
+
+            conn: null,
+            promise: null,
+        };
+}
+
+export const connectToDatabase =
+    async () => {
+
+        /**
+         * PEGA ENV AQUI
+         */
+        const MONGO_URI =
+            process.env.MONGO_URI;
+
+        if (!MONGO_URI) {
+
+            throw new Error(
+                'MONGO_URI não configurada.'
+            );
+        }
+
+        /**
+         * reutiliza conexão
+         */
+        if (cached.conn) {
+
+            return cached.conn;
+        }
+
+        /**
+         * evita múltiplas conexões
+         */
+        if (!cached.promise) {
+
+            cached.promise =
+                mongoose.connect(
+                    MONGO_URI,
+                    {
+                        bufferCommands: false,
+
+                        serverSelectionTimeoutMS: 5000,
+                    }
+                );
+        }
+
+        cached.conn =
+            await cached.promise;
+
+        console.log(
+            'MongoDB conectado.'
+        );
+
+        return cached.conn;
+    };
