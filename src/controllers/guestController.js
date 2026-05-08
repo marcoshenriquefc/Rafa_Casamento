@@ -141,4 +141,19 @@ export const guestController = {
       return next(error);
     }
   },
+
+  // Documentação: Exemplo de uso do endpoint de busca por nome ou email
+  // GET /guests/search?q=Maria
+  // Retorna uma lista de convidados cujo nome ou email contenha "Maria" (case-insensitive)
+  async searchByNameOrEmail(req, res, next) {
+    try {
+      const { query } = req.query;
+      console.log(query);
+      const results = await guestService.searchGuestsByNameOrEmail(query);
+      return res.status(200).json(results);
+    }
+    catch (error) {
+      return next(error);
+    }
+  },
 };

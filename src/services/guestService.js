@@ -243,5 +243,16 @@ export const guestService = {
     };
     
     return signAccessToken(tokenPayload, '7d');
-  }
+  },
+
+  async searchGuestsByNameOrEmail(query) {
+    const allGuests = await guestRepository.list();
+    const lowerCaseQuery = query.toLowerCase();
+    return allGuests.filter((guest) => {
+      return (
+        guest.name.toLowerCase().includes(lowerCaseQuery) ||
+        guest.email.toLowerCase().includes(lowerCaseQuery)
+      );
+    });
+  },
 };

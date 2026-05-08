@@ -312,6 +312,12 @@ Response:
 }
 ```
 
+### GET `/api/guest/search?query=Maria` (ADMIN, PORTEIRO)
+Body:
+```json
+{ "companionIds": ["...", "..."] }
+```
+
 ### POST `/api/guests/:invitationCode/check-in` (ADMIN, PORTEIRO)
 Body:
 ```json

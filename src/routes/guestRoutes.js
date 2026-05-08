@@ -17,6 +17,7 @@ export const guestRoutes = Router();
 guestRoutes.get('/', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.NOIVOS), guestController.list);
 guestRoutes.get('/attendance/summary', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.NOIVOS), guestController.attendanceSummary);
 guestRoutes.post('/', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.NOIVOS), validate(createGuestSchema), guestController.create);
+guestRoutes.get('/search', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.PORTEIRO), guestController.searchByNameOrEmail);
 guestRoutes.get(
   '/:invitationCode',
   authenticate,
