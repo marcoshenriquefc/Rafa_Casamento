@@ -103,6 +103,7 @@ Perfis disponíveis:
   invitationPassword: string; // 5 dígitos
   name: string;
   email: string; // único
+  isBestMan: boolean;
   companions: Array<{ _id: ObjectId; name: string; checkedInAt: Date | null }>;
   qrPayload: string;
   checkedInAt: Date | null;
@@ -207,6 +208,7 @@ Body:
 {
   "name": "João",
   "email": "joao@email.com",
+  "isBestMan": true,
   "companions": [{ "name": "Maria" }]
 }
 ```
@@ -262,6 +264,14 @@ Response:
     }
   ]
 }
+```
+
+### GET `/api/guests/:invitationCode/attendance-status` (público)
+Retorna `true/false` informando se o convidado já confirmou presença.
+
+Response:
+```json
+{ "invitationCode": "12345678", "attendanceConfirmed": true }
 ```
 
 ### POST `/api/guests/:invitationCode/confirm-attendance` (público e seguro)

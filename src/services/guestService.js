@@ -11,7 +11,7 @@ import { USER_ROLES } from '../models/User.js';
 import { hashPassword } from '../utils/security.js';
 
 export const guestService = {
-  async createGuest({ name, email, companions, createdBy }) {
+  async createGuest({ name, email, companions, createdBy, isBestMan = false }) {
     let invitationCode = buildInvitationCode();
     while (await guestRepository.findByInvitationCode(invitationCode)) {
       invitationCode = buildInvitationCode();
@@ -27,6 +27,7 @@ export const guestService = {
       name,
       email,
       companions,
+      isBestMan,
       qrPayload,
       createdBy,
       linkedUser: linkedUser?.id || null,
@@ -45,6 +46,19 @@ export const guestService = {
     }
 
     return guest;
+  },
+
+
+  async getAttendanceStatusByInvitationCode(invitationCode) {
+    const guest = await guestRepository.findByInvitationCode(invitationCode);
+    if (!guest) {
+      throw new HttpError(404, 'Convite não encontrado.');
+    }
+
+    return {
+      invitationCode: guest.invitationCode,
+      attendanceConfirmed: Boolean(guest.attendanceConfirmedAt),
+    };
   },
 
   async getGuestByInvitationCode(invitationCode) {
@@ -78,6 +92,7 @@ export const guestService = {
     if (payload.name !== undefined) guest.name = payload.name;
     if (payload.email !== undefined) guest.email = payload.email;
     if (payload.companions !== undefined) guest.companions = payload.companions;
+    if (payload.isBestMan !== undefined) guest.isBestMan = payload.isBestMan;
 
     await guestRepository.save(guest);
     return guest;

@@ -6,6 +6,7 @@ export const createGuestSchema = z.object({
     name: z.string().min(2),
     email: z.string().email(),
     companions: z.array(companionSchema).default([]),
+    isBestMan: z.boolean().optional().default(false),
   }),
   params: z.object({}).optional(),
   query: z.object({}).optional(),
@@ -20,8 +21,9 @@ export const updateGuestSchema = z.object({
       name: z.string().min(2).optional(),
       email: z.string().email().optional(),
       companions: z.array(companionSchema).optional(),
+      isBestMan: z.boolean().optional(),
     })
-    .refine((data) => data.name !== undefined || data.email !== undefined || data.companions !== undefined, {
+    .refine((data) => data.name !== undefined || data.email !== undefined || data.companions !== undefined || data.isBestMan !== undefined, {
       message: 'Informe ao menos um campo para atualização.',
     }),
   query: z.object({}).optional(),

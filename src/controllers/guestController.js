@@ -32,6 +32,17 @@ export const guestController = {
     }
   },
 
+
+  async attendanceStatus(req, res, next) {
+    try {
+      const { invitationCode } = req.validated.params;
+      const status = await guestService.getAttendanceStatusByInvitationCode(invitationCode);
+      return res.status(200).json(status);
+    } catch (error) {
+      return next(error);
+    }
+  },
+
   async getByInvitationCode(req, res, next) {
     try {
       const { invitationCode } = req.validated.params;

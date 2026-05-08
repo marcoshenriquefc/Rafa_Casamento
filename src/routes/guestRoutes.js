@@ -45,6 +45,7 @@ guestRoutes.get(
   validate(invitationCodeParamSchema),
   guestController.generatePdf,
 );
+guestRoutes.get('/:invitationCode/attendance-status', validate(invitationCodeParamSchema), guestController.attendanceStatus);
 guestRoutes.post('/:invitationCode/login', validate(guestPortalAuthSchema), guestController.invitationLogin);
 guestRoutes.post('/:invitationCode/confirm-attendance', validate(confirmAttendanceSchema), guestController.confirmAttendance);
 guestRoutes.post(
