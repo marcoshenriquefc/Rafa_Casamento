@@ -274,12 +274,12 @@ Response:
 { "invitationCode": "12345678", "attendanceConfirmed": true }
 ```
 
-### POST `/api/guests/:invitationCode/confirm-attendance` (público e seguro)
+### POST `/api/guests//confirm-attendance` (público e seguro)
 Convidado confirma presença usando `invitationCode + password`.
 
-Body:
+Header:
 ```json
-{ "password": "12345", "companionIds": ["..."] }
+// Pasa apenas o barrer token JWT para validação
 ```
 
 Response:
@@ -305,7 +305,10 @@ Response:
   "invitationCode": "12345678",
   "guestName": "João",
   "email": "joao@email.com",
-  "companions": []
+  "companions": [],
+  "isBestMan" : false,
+  "attendanceConfirmedAt" : true,
+  "token": JWT,
 }
 ```
 

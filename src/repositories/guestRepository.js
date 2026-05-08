@@ -8,4 +8,5 @@ export const guestRepository = {
   listByAttendanceStatus: () => GuestModel.find({}, { name: 1, email: 1, invitationCode: 1, attendanceConfirmedAt: 1, companions: 1 }).sort({ name: 1 }),
   save: (guest) => guest.save(),
   deleteByInvitationCode: (invitationCode) => GuestModel.findOneAndDelete({ invitationCode }),
+  findById: (id) => GuestModel.findById(id),
 };

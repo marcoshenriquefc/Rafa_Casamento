@@ -8,7 +8,7 @@ import {
 } from '../utils/invitation.js';
 import { generateInvitationPdfBuffer } from '../utils/pdfGenerator.js';
 import { USER_ROLES } from '../models/User.js';
-import { hashPassword } from '../utils/security.js';
+import { hashPassword, signAccessToken } from '../utils/security.js';
 
 export const guestService = {
   async createGuest({ name, email, companions, createdBy, isBestMan = false }) {
@@ -215,6 +215,18 @@ export const guestService = {
     };
   },
 
+  async confirmAttendanceById(guestId) {
+    console.log(guestId);
+    const guest = await guestRepository.findById(guestId);
+    if (!guest) {
+      throw new HttpError(404, 'Convidado não encontrado.');
+    }
+
+    guest.attendanceConfirmedAt = guest.attendanceConfirmedAt || new Date();
+    await guestRepository.save(guest);
+    return guest;
+  },
+
   async authenticateGuestByInvitation({ invitationCode, invitationPassword }) {
     const guest = await guestRepository.findByInvitationCode(invitationCode);
     if (!guest || guest.invitationPassword !== invitationPassword) {
@@ -223,4 +235,13 @@ export const guestService = {
 
     return guest;
   },
+
+  generateGuestToken(guest) {
+    const tokenPayload = {
+      guestId: guest.id,
+      invitationCode: guest.invitationCode,
+    };
+    
+    return signAccessToken(tokenPayload, '7d');
+  }
 };

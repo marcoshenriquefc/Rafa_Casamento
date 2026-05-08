@@ -93,29 +93,40 @@ export const guestController = {
         invitationPassword: req.validated.body.password,
       });
 
+      const token = guestService.generateGuestToken(guest);
+
       return res.status(200).json({
         invitationCode: guest.invitationCode,
         guestName: guest.name,
         email: guest.email,
         companions: guest.companions,
+        isBestMan: guest.isBestMan,
+        attendanceConfirmedAt: guest.attendanceConfirmedAt,
+        token: token,
       });
-    } catch (error) {
+    }
+    catch (error) {
       return next(error);
     }
   },
 
 
   async confirmAttendance(req, res, next) {
+    const invitationCode = req.guest?.invitationCode;
+    const guestId = req.guest?.id;
+    if (!invitationCode || !guestId) {
+      return res.status(401).json({ message: 'Token de autenticação ausente' });
+    }
+
     try {
-      const { invitationCode } = req.validated.params;
-      const { password, companionIds } = req.validated.body;
-      const result = await guestService.confirmAttendanceByInvitation({
-        invitationCode,
-        invitationPassword: password,
-        companionIds,
+      const result = await guestService.confirmAttendanceById(guestId);
+      return res.status(200).json({
+        error: false,
+        message: 'Presença confirmada com sucesso!',
+        invitationCode: result.invitationCode,
       });
-      return res.status(200).json(result);
-    } catch (error) {
+    }
+    catch (error) {
       return next(error);
     }
   },

@@ -24,3 +24,25 @@ export const authorize = (...roles) => (req, _res, next) => {
   }
   return next();
 };
+
+export const authenticateGuestByJWT = (req, _res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization?.startsWith('Bearer ')) {
+    return next(new HttpError(401, 'Token de autenticação ausente.'));
+  }
+
+  const token = authorization.replace('Bearer ', '');
+  try {
+    const payload = verifyAccessToken(token);
+    if (!payload.guestId || !payload.invitationCode) {
+      throw new Error('Token inválido para acesso de convidado.');
+    }
+    req.guest = {
+      id: payload.guestId,
+      invitationCode: payload.invitationCode,
+    };
+    return next();
+  } catch {
+    return next(new HttpError(401, 'Token de convidado inválido ou expirado.'));
+  }
+};

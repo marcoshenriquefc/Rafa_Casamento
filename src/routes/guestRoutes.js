@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { guestController } from '../controllers/guestController.js';
-import { authenticate, authorize } from '../middlewares/authMiddleware.js';
+import { authenticate, authenticateGuestByJWT, authorize } from '../middlewares/authMiddleware.js';
 import { validate } from '../middlewares/validateMiddleware.js';
 import {
   checkInSchema,
@@ -24,6 +24,8 @@ guestRoutes.get(
   validate(invitationCodeParamSchema),
   guestController.getByInvitationCode,
 );
+
+guestRoutes.post('/confirm-attendance', authenticateGuestByJWT, guestController.confirmAttendance);
 guestRoutes.patch(
   '/:invitationCode',
   authenticate,
@@ -47,7 +49,6 @@ guestRoutes.get(
 );
 guestRoutes.get('/:invitationCode/attendance-status', validate(invitationCodeParamSchema), guestController.attendanceStatus);
 guestRoutes.post('/:invitationCode/login', validate(guestPortalAuthSchema), guestController.invitationLogin);
-guestRoutes.post('/:invitationCode/confirm-attendance', validate(confirmAttendanceSchema), guestController.confirmAttendance);
 guestRoutes.post(
   '/:invitationCode/check-in',
   authenticate,
