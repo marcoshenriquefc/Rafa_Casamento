@@ -4,7 +4,7 @@
     <div class="grid" style="margin-top:.8rem;">
       <div><label>Título</label><input v-model="form.title" /></div>
       <div><label>Descrição</label><textarea v-model="form.description" rows="3" /></div>
-      <div><label>Imagem URL</label><input v-model="form.imageUrl" /></div>
+      <div><label>Imagem</label><input type="file" accept="image/*" @change="handleFileChange" /></div>
       <div><label>Preço</label><input v-model.number="form.price" type="number" min="0" /></div>
       <div><label>Quantidade</label><input v-model.number="form.quantity" type="number" min="1" /></div>
       <button class="secondary" @click="submit">Salvar presente</button>
@@ -21,7 +21,12 @@ import { giftService } from '../services/giftService';
 const emit = defineEmits(['created']);
 const error = ref('');
 const success = ref('');
-const form = reactive({ title: '', description: '', imageUrl: '', price: 0, quantity: 1 });
+const form = reactive({ title: '', description: '', image: null, price: 0, quantity: 1 });
+
+const handleFileChange = (event) => {
+  const [file] = event.target.files || [];
+  form.image = file || null;
+};
 
 const submit = async () => {
   try {
@@ -31,7 +36,7 @@ const submit = async () => {
     success.value = 'Presente cadastrado com sucesso.';
     form.title = '';
     form.description = '';
-    form.imageUrl = '';
+    form.image = null;
     form.price = 0;
     form.quantity = 1;
     emit('created');

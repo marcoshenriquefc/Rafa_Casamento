@@ -4,9 +4,8 @@ export const createGiftSchema = z.object({
   body: z.object({
     title: z.string().min(2),
     description: z.string().optional(),
-    imageUrl: z.string().url().optional(),
-    price: z.number().nonnegative(),
-    quantity: z.number().int().positive(),
+    price: z.coerce.number().nonnegative(),
+    quantity: z.coerce.number().int().positive(),
   }),
   params: z.object({}).optional(),
   query: z.object({}).optional(),
