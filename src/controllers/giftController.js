@@ -1,7 +1,21 @@
 import { giftService } from '../services/giftService.js';
+import { cloudinary } from '../config/cloudinary.js'
+import { GiftModel } from '../models/Gift.js'
+import streamifier from 'streamifier'
 
 export const giftController = {
   async create(req, res, next) {
+    // try {
+    //   const gift = await giftService.createGift({
+    //     ...req.validated.body,
+    //     imageUrl: req.file?.path || '',
+    //     createdBy: req.user.sub,
+    //   });
+    //   return res.status(201).json(gift);
+    // } catch (error) {
+    //   return next(error);
+    // }
+
     try {
       const gift = await giftService.createGift({
         ...req.validated.body,
