@@ -3,7 +3,11 @@ import { giftService } from '../services/giftService.js';
 export const giftController = {
   async create(req, res, next) {
     try {
-      const gift = await giftService.createGift({ ...req.validated.body, createdBy: req.user.sub });
+      const gift = await giftService.createGift({
+        ...req.validated.body,
+        imageUrl: req.file?.path || '',
+        createdBy: req.user.sub,
+      });
       return res.status(201).json(gift);
     } catch (error) {
       return next(error);
