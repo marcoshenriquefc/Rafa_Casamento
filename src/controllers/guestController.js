@@ -119,11 +119,14 @@ export const guestController = {
     }
 
     try {
-      const result = await guestService.confirmAttendanceById(guestId);
+      const { companionIds = [] } = req.validated?.body || {};
+      const result = await guestService.confirmAttendanceById(guestId, companionIds);
       return res.status(200).json({
         error: false,
         message: 'Presença confirmada com sucesso!',
         invitationCode: result.invitationCode,
+        attendanceConfirmedAt: result.attendanceConfirmedAt,
+        companions: result.companions,
       });
     }
     catch (error) {

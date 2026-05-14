@@ -59,11 +59,8 @@ export const checkInSchema = z.object({
 
 
 export const confirmAttendanceSchema = z.object({
-  params: z.object({
-    invitationCode: z.string().regex(/^\d{8}$/, 'Invitation code deve conter 8 dígitos.'),
-  }),
+  params: z.object({}).optional(),
   body: z.object({
-    password: z.string().length(5),
     companionIds: z.array(z.string()).default([]),
   }),
   query: z.object({}).optional(),

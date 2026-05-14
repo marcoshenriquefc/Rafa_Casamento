@@ -42,6 +42,9 @@ MP_SUCCESS_URL=http://localhost:5173/pagamento/sucesso
 MP_FAILURE_URL=http://localhost:5173/pagamento/falha
 MP_PENDING_URL=http://localhost:5173/pagamento/pendente
 MP_WEBHOOK_URL=https://seu-dominio.com/api/gifts/payments/webhook
+CLOUDINARY_CLOUD_NAME=seu-cloud-name
+CLOUDINARY_API_KEY=sua-api-key
+CLOUDINARY_API_SECRET=seu-api-secret
 ```
 
 ### 3.2 Execução
@@ -274,22 +277,37 @@ Response:
 { "invitationCode": "12345678", "attendanceConfirmed": true }
 ```
 
-### POST `/api/guests//confirm-attendance` (público e seguro)
-Convidado confirma presença usando `invitationCode + password`.
+### POST `/api/guests/confirm-attendance` (CONVIDADO autenticado por JWT)
+Convidado confirma presença e informa quais acompanhantes também irão participar.
 
 Header:
-```json
-// Pasa apenas o barrer token JWT para validação
+```http
+Authorization: Bearer <guest_jwt>
 ```
+
+Body:
+```json
+{
+  "companionIds": ["665f...", "665a..."]
+}
+```
+
+Regras:
+- `attendanceConfirmedAt` do convidado principal é preenchido com `Date` na primeira confirmação;
+- para cada acompanhante listado em `companionIds`, `attendanceConfirmedAt` fica `Date`;
+- acompanhantes não listados ficam com `attendanceConfirmedAt = null`;
+- se algum `companionId` não pertencer ao convite, retorna `400`.
 
 Response:
 ```json
 {
+  "error": false,
+  "message": "Presença confirmada com sucesso!",
   "invitationCode": "12345678",
-  "guestName": "João",
   "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z",
-  "confirmedCompanions": [
-    { "id": "...", "name": "Maria", "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z" }
+  "companions": [
+    { "_id": "665f...", "name": "Maria", "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z" },
+    { "_id": "665a...", "name": "José", "attendanceConfirmedAt": null }
   ]
 }
 ```
@@ -332,14 +350,39 @@ Response: convidado atualizado com `checkedInAt`.
 Lista presentes ativos.
 
 ### POST `/api/gifts` (ADMIN, NOIVOS)
-Body:
+`Content-Type: multipart/form-data`
+
+Campos:
+- `title` (string)
+- `description` (string, opcional)
+- `price` (number)
+- `quantity` (number inteiro > 0)
+- `image` (arquivo, opcional: `jpg|jpeg|png|webp`, até 5MB)
+
+Exemplo (cURL):
+```bash
+curl -X POST "http://localhost:3000/api/gifts" \
+  -H "Authorization: Bearer <jwt_admin_ou_noivos>" \
+  -F "title=Jogo de Panelas" \
+  -F "description=Aço inox" \
+  -F "price=350" \
+  -F "quantity=3" \
+  -F "image=@/caminho/para/imagem.jpg"
+```
+
+O backend envia o arquivo para o Cloudinary e salva no banco apenas o `imageUrl` retornado.
+
+Response (exemplo):
 ```json
 {
+  "_id": "...",
   "title": "Jogo de Panelas",
   "description": "Aço inox",
-  "imageUrl": "https://...",
+  "imageUrl": "https://res.cloudinary.com/.../image/upload/...jpg",
   "price": 350,
-  "quantity": 3
+  "quantity": 3,
+  "reservedQuantity": 0,
+  "active": true
 }
 ```
 
