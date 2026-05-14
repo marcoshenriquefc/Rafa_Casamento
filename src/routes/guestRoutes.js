@@ -26,7 +26,7 @@ guestRoutes.get(
   guestController.getByInvitationCode,
 );
 
-guestRoutes.post('/confirm-attendance', authenticateGuestByJWT, guestController.confirmAttendance);
+guestRoutes.post('/confirm-attendance', authenticateGuestByJWT, validate(confirmAttendanceSchema), guestController.confirmAttendance);
 guestRoutes.patch(
   '/:invitationCode',
   authenticate,

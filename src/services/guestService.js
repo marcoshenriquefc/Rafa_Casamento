@@ -215,14 +215,26 @@ export const guestService = {
     };
   },
 
-  async confirmAttendanceById(guestId) {
-    console.log(guestId);
+  async confirmAttendanceById(guestId, companionIds = []) {
     const guest = await guestRepository.findById(guestId);
     if (!guest) {
       throw new HttpError(404, 'Convidado não encontrado.');
     }
 
-    guest.attendanceConfirmedAt = guest.attendanceConfirmedAt || new Date();
+    const now = new Date();
+    const companionIdSet = new Set(companionIds.map(String));
+    const allCompanionIds = guest.companions.map((companion) => String(companion._id));
+    const invalidCompanionIds = [...companionIdSet].filter((id) => !allCompanionIds.includes(id));
+
+    if (invalidCompanionIds.length > 0) {
+      throw new HttpError(400, 'Um ou mais acompanhantes informados são inválidos para este convite.');
+    }
+
+    guest.attendanceConfirmedAt = guest.attendanceConfirmedAt || now;
+    guest.companions.forEach((companion) => {
+      companion.attendanceConfirmedAt = companionIdSet.has(String(companion._id)) ? (companion.attendanceConfirmedAt || now) : null;
+    });
+
     await guestRepository.save(guest);
     return guest;
   },
