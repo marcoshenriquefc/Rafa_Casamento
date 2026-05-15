@@ -6,7 +6,7 @@ import {
   buildInvitationCode,
   buildInvitationPassword,
 } from '../utils/invitation.js';
-import { generateInvitationPdfBuffer } from '../utils/pdfGenerator.js';
+import { generateBulkInvitationsPdfBuffer, generateInvitationPdfBuffer } from '../utils/pdfGenerator.js';
 import { USER_ROLES } from '../models/User.js';
 import { hashPassword, signAccessToken } from '../utils/security.js';
 
@@ -130,6 +130,20 @@ export const guestService = {
     });
   },
 
+  async exportAllInvitationsPdf() {
+    const guests = await guestRepository.list();
+
+    const payload = guests.map((guest) => ({
+      name: guest.name,
+      invitationCode: guest.invitationCode,
+      invitationPassword: guest.invitationPassword,
+      companions: guest.companions || [],
+      qrPayload: buildGuestPortalUrl(guest.invitationCode),
+    }));
+
+    return generateBulkInvitationsPdfBuffer({ guests: payload });
+  },
+
   async listGuests() {
     return guestRepository.list();
   },
@@ -146,6 +160,13 @@ export const guestService = {
         name: g.name,
         email: g.email,
         attendanceConfirmedAt: g.attendanceConfirmedAt,
+        confirmedCompanions: g.companions
+          .filter((c) => c.attendanceConfirmedAt)
+          .map((c) => ({
+            id: c._id,
+            name: c.name,
+            attendanceConfirmedAt: c.attendanceConfirmedAt,
+          })),
         companionsConfirmed: g.companions.filter((c) => c.attendanceConfirmedAt).length,
         companionsTotal: g.companions.length,
       }));
