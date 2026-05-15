@@ -346,50 +346,72 @@ export const generateBulkInvitationsPdfBuffer = async ({ guests }) => {
     const qrDataUrl = await QRCode.toDataURL(guest.qrPayload, { width: 120, margin: 1 });
     const qrImage = Buffer.from(qrDataUrl.replace(/^data:image\/png;base64,/, ''), 'base64');
 
-    doc.roundedRect(x, y, cellWidth, cellHeight, 8).lineWidth(0.8).strokeColor('#d1d5db').stroke();
+    doc
+      .roundedRect(x, y, cellWidth, cellHeight, 8)
+      .fillColor('#ffffff')
+      .fill();
+    doc
+      .roundedRect(x, y, cellWidth, cellHeight, 8)
+      .lineWidth(0.8)
+      .strokeColor('#d1d5db')
+      .stroke();
 
-    const innerPadding = 8;
+    const innerPadding = 9;
     const contentX = x + innerPadding;
     let cursorY = y + innerPadding;
     const textWidth = cellWidth - innerPadding * 2;
+    const headerHeight = 18;
+
+    doc.roundedRect(x + 0.6, y + 0.6, cellWidth - 1.2, headerHeight, 8).fillColor('#111827').fill();
+    doc.font('Helvetica-Bold').fontSize(7).fillColor('#f9fafb').text('CONVITE', contentX, cursorY + 5, {
+      width: textWidth,
+      align: 'center',
+    });
+    cursorY += headerHeight + 4;
 
     doc.font('Helvetica-Bold').fontSize(9).fillColor('#111827').text(guest.name, contentX, cursorY, {
       width: textWidth,
       align: 'center',
     });
-    cursorY += 18;
+    cursorY += 20;
 
-    doc.font('Helvetica').fontSize(8).text(`Código: ${guest.invitationCode}`, contentX, cursorY, {
+    doc.font('Helvetica').fontSize(8).fillColor('#1f2937').text(`Código: ${guest.invitationCode}`, contentX, cursorY, {
       width: textWidth,
       align: 'center',
     });
-    cursorY += 12;
+    cursorY += 11;
     doc.text(`Senha: ${guest.invitationPassword}`, contentX, cursorY, {
       width: textWidth,
       align: 'center',
     });
-    cursorY += 12;
+    cursorY += 14;
 
     const companionsText = guest.companions.length
       ? guest.companions.map((companion) => `• ${companion.name}`).join('\n')
       : 'Sem acompanhantes';
 
-    doc.font('Helvetica-Bold').fontSize(7).text('Acompanhantes', contentX, cursorY, {
+    doc.font('Helvetica-Bold').fontSize(7).fillColor('#374151').text('ACOMPANHANTES', contentX, cursorY, {
       width: textWidth,
-      align: 'left',
+      align: 'center',
     });
-    cursorY += 10;
+    cursorY += 9;
 
-    doc.font('Helvetica').fontSize(7).text(companionsText, contentX, cursorY, {
+    doc.font('Helvetica').fontSize(7).fillColor('#4b5563').text(companionsText, contentX, cursorY, {
       width: textWidth,
-      height: 48,
+      align: 'center',
+      height: 44,
       ellipsis: true,
     });
 
-    const qrSize = 60;
+    const qrSize = 58;
     const qrX = x + (cellWidth - qrSize) / 2;
-    const qrY = y + cellHeight - innerPadding - qrSize - 10;
+    const qrY = y + cellHeight - innerPadding - qrSize - 14;
+    doc.roundedRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8, 5).fillColor('#f9fafb').fill();
     doc.image(qrImage, qrX, qrY, { width: qrSize, height: qrSize });
+    doc.font('Helvetica').fontSize(6).fillColor('#6b7280').text('Acesse seu convite', contentX, qrY + qrSize + 3, {
+      width: textWidth,
+      align: 'center',
+    });
   }
 
   doc.end();
