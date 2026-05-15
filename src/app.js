@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import dns from 'node:dns';
+//import dns from 'node:dns';
 
 import { apiRouter }
 from './routes/index.js';
@@ -14,10 +14,10 @@ from './middlewares/errorHandler.js';
 /**
  * DNS FIX MONGODB + VERCEL
  */
-dns.setServers([
-    '1.1.1.1',
-    '8.8.8.8',
-]);
+//dns.setServers([
+//    '1.1.1.1',
+//    '8.8.8.8',
+//]);
 
 const app = express();
 
