@@ -252,6 +252,13 @@ Response:
       "name": "João",
       "email": "joao@email.com",
       "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z",
+      "confirmedCompanions": [
+        {
+          "id": "665f...",
+          "name": "Maria",
+          "attendanceConfirmedAt": "2026-05-07T12:00:00.000Z"
+        }
+      ],
       "companionsConfirmed": 1,
       "companionsTotal": 2
     }
@@ -342,6 +349,49 @@ Body:
 { "companionIds": ["...", "..."] }
 ```
 Response: convidado atualizado com `checkedInAt`.
+
+### GET `/api/admin/guests/export-invitations` (ADMIN)
+Gera um único PDF A4 para download contendo **todos os convites** em layout de impressão:
+- grade de `3 colunas x 4 linhas` (12 convites por página);
+- quebra automática para múltiplas páginas quando houver mais de 12 convidados;
+- cada convite inclui nome, código, senha, acompanhantes e QR Code.
+
+Headers:
+- `Authorization: Bearer <jwt_admin>`
+
+Response:
+- `200 OK`
+- `Content-Type: application/pdf`
+- `Content-Disposition: attachment; filename="convites-convidados.pdf"`
+
+Exemplo (cURL):
+```bash
+curl -X GET "http://localhost:3000/api/admin/guests/export-invitations" \
+  -H "Authorization: Bearer <jwt_admin>" \
+  --output convites-convidados.pdf
+```
+
+Exemplo (JavaScript - fetch):
+```javascript
+const response = await fetch('http://localhost:3000/api/admin/guests/export-invitations', {
+  method: 'GET',
+  headers: {
+    Authorization: 'Bearer <jwt_admin>',
+  },
+});
+
+if (!response.ok) {
+  throw new Error('Falha ao exportar convites');
+}
+
+const blob = await response.blob();
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'convites-convidados.pdf';
+a.click();
+URL.revokeObjectURL(url);
+```
 
 ---
 
