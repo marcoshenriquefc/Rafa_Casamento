@@ -1,125 +1,9 @@
 import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-// export const generateInvitationPdfBuffer = async ({
-//   guestName,
-//   companions,
-//   invitationCode,
-//   invitationPassword,
-//   qrPayload,
-// }) => {
-//   const doc = new PDFDocument({ size: 'A4', margin: 48 });
-//   const chunks = [];
 
-//   doc.on('data', (chunk) => chunks.push(chunk));
-
-//   const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, { margin: 1, width: 180 });
-//   const qrImage = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
-
-//   doc.fontSize(24).text('Convite de Casamento', { align: 'center' });
-//   doc.moveDown();
-//   doc.fontSize(18).text(`Convidado: ${guestName}`);
-//   doc.moveDown(0.5);
-
-//   const companionLabel = companions.length
-//     ? companions.map((companion) => `• ${companion.name}`).join('\n')
-//     : 'Sem acompanhantes';
-
-//   doc.fontSize(14).text(`Acompanhantes:\n${companionLabel}`);
-//   doc.moveDown();
-//   doc.fontSize(12).text(`ID do convite: ${invitationCode}`);
-//   doc.text(`Senha de acesso (5 dígitos): ${invitationPassword}`);
-//   doc.moveDown();
-//   doc.image(Buffer.from(qrImage, 'base64'), { fit: [180, 180], align: 'center' });
-//   doc.moveDown();
-//   doc.fontSize(10).text('Use este QRCode para acessar a página de presentes e para check-in na entrada.');
-
-//   doc.end();
-
-//   return await new Promise((resolve) => {
-//     doc.on('end', () => resolve(Buffer.concat(chunks)));
-//   });
-// };
-
-// export const generateInvitationPdfBuffer = async ({
-//   guestName,
-//   companions,
-//   invitationCode,
-//   invitationPassword,
-//   qrPayload,
-// }) => {
-//   const doc = new PDFDocument({ size: 'A4', margin: 0 });
-//   const chunks = [];
-
-//   doc.on('data', (chunk) => chunks.push(chunk));
-
-//   // 🎨 BACKGROUND
-//   doc.image('src/assets/test.jpg', 0, 0, {
-//     width: doc.page.width,
-//     height: doc.page.height,
-//   });
-
-//   // 🎯 QR Code
-//   const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, {
-//     margin: 1,
-//     width: 180,
-//   });
-
-//   const qrImage = qrCodeDataUrl.replace(/^data:image\/png;base64,/, '');
-
-//   // 🎨 TEXTO
-//   doc.fillColor('#ffffff');
-
-//   doc.fontSize(30).text('Você está convidado', 0, 120, {
-//     align: 'center',
-//   });
-
-//   doc.moveDown();
-
-//   doc.fontSize(22).text(guestName, {
-//     align: 'center',
-//   });
-
-//   doc.moveDown(1);
-
-//   const companionLabel = companions.length
-//     ? companions.map((c) => `• ${c.name}`).join('\n')
-//     : 'Sem acompanhantes';
-
-//   doc.fontSize(14).text(companionLabel, {
-//     align: 'center',
-//   });
-
-//   doc.moveDown(2);
-
-//   // 📌 QR CENTRALIZADO
-//   doc.image(Buffer.from(qrImage, 'base64'), doc.page.width / 2 - 90, 420, {
-//     width: 180,
-//   });
-
-//   doc.moveDown();
-
-//   doc.fontSize(10).text(
-//     'Apresente este QR Code na entrada',
-//     0,
-//     610,
-//     { align: 'center' }
-//   );
-
-//   // 🔐 Dados pequenos no rodapé
-//   doc.fontSize(8).text(
-//     `ID: ${invitationCode} | Senha: ${invitationPassword}`,
-//     0,
-//     750,
-//     { align: 'center' }
-//   );
-
-//   doc.end();
-
-//   return await new Promise((resolve) => {
-//     doc.on('end', () => resolve(Buffer.concat(chunks)));
-//   });
-// };
 
 export const generateInvitationPdfBuffer = async ({
   guestName,
@@ -331,6 +215,19 @@ export const generateBulkInvitationsPdfBuffer = async ({ guests }) => {
   const cellWidth = (printableWidth - (columns - 1) * gapX) / columns;
   const cellHeight = (printableHeight - (rows - 1) * gapY) / rows;
 
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = path.dirname(__filename)
+  
+  const bodoniFont = path.resolve(
+    __dirname,
+    '../assets/font/BodoniModa-Italic-VariableFont_opsz,wght.ttf'
+  )
+
+  doc.registerFont(
+      'BodoniModa',
+      bodoniFont
+  )
+
   for (let i = 0; i < guests.length; i += 1) {
     if (i > 0 && i % itemsPerPage === 0) {
       doc.addPage();
@@ -356,18 +253,65 @@ export const generateBulkInvitationsPdfBuffer = async ({ guests }) => {
       .strokeColor('#d1d5db')
       .stroke();
 
-    const innerPadding = 9;
+    const innerPadding = 0;
     const contentX = x + innerPadding;
     let cursorY = y + innerPadding;
     const textWidth = cellWidth - innerPadding * 2;
     const headerHeight = 18;
 
-    doc.roundedRect(x + 0.6, y + 0.6, cellWidth - 1.2, headerHeight, 8).fillColor('#111827').fill();
-    doc.font('Helvetica-Bold').fontSize(7).fillColor('#f9fafb').text('CONVITE', contentX, cursorY + 5, {
+    const radius = 12
+
+    const rectX = x + 0.6
+    const rectY = y + 0.6
+    const rectWidth = cellWidth - 1.2
+    const rectHeight = headerHeight
+
+    doc
+      .moveTo(rectX, rectY + rectHeight)
+
+      // esquerda
+      .lineTo(rectX, rectY + radius)
+
+      // canto superior esquerdo
+      .quadraticCurveTo(
+        rectX,
+        rectY,
+        rectX + radius,
+        rectY
+      )
+
+      // topo
+      .lineTo(
+        rectX + rectWidth - radius,
+        rectY
+      )
+
+      // canto superior direito
+      .quadraticCurveTo(
+        rectX + rectWidth,
+        rectY,
+        rectX + rectWidth,
+        rectY + radius
+      )
+
+      // direita
+      .lineTo(
+        rectX + rectWidth,
+        rectY + rectHeight
+      )
+
+      // base reta
+      .lineTo(rectX, rectY + rectHeight)
+
+      .fillColor('#6b92c7')
+      .fill()
+
+    doc.font('BodoniModa').fontSize(8).fillColor('#f9fafb').text('Dayara & Rafael', contentX, cursorY + 5, {
       width: textWidth,
       align: 'center',
     });
-    cursorY += headerHeight + 4;
+    
+    cursorY += headerHeight + 16;
 
     doc.font('Helvetica-Bold').fontSize(9).fillColor('#111827').text(guest.name, contentX, cursorY, {
       width: textWidth,
@@ -386,22 +330,26 @@ export const generateBulkInvitationsPdfBuffer = async ({ guests }) => {
     });
     cursorY += 14;
 
-    const companionsText = guest.companions.length
-      ? guest.companions.map((companion) => `• ${companion.name}`).join('\n')
-      : 'Sem acompanhantes';
+    const hasComanions = guest.companions.map((companion) => `• ${companion.name}`).join('\n')
+    if(hasComanions) {
+      const companionsText = guest.companions.length
+        ? hasComanions
+        : 'Sem acompanhantes';
+  
+      doc.font('Helvetica-Bold').fontSize(7).fillColor('#374151').text('ACOMPANHANTES', contentX, cursorY, {
+        width: textWidth,
+        align: 'center',
+      });
+      cursorY += 9;
 
-    doc.font('Helvetica-Bold').fontSize(7).fillColor('#374151').text('ACOMPANHANTES', contentX, cursorY, {
-      width: textWidth,
-      align: 'center',
-    });
-    cursorY += 9;
+      doc.font('Helvetica').fontSize(7).fillColor('#4b5563').text(companionsText, contentX, cursorY, {
+        width: textWidth,
+        align: 'center',
+        height: 44,
+        ellipsis: true,
+      });
+    }
 
-    doc.font('Helvetica').fontSize(7).fillColor('#4b5563').text(companionsText, contentX, cursorY, {
-      width: textWidth,
-      align: 'center',
-      height: 44,
-      ellipsis: true,
-    });
 
     const qrSize = 58;
     const qrX = x + (cellWidth - qrSize) / 2;
