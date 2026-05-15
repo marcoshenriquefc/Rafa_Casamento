@@ -308,6 +308,118 @@ export const generateInvitationPdfBuffer = async ({
   });
 };
 
+export const generateBulkInvitationsPdfBuffer = async ({ guests }) => {
+  const doc = new PDFDocument({
+    size: 'A4',
+    margin: 28,
+    info: {
+      Title: 'Convites - Lista completa',
+      Author: 'Rafa Casamento Backend',
+      Subject: 'Exportação de convites para impressão',
+    },
+  });
+  const chunks = [];
+  doc.on('data', (chunk) => chunks.push(chunk));
+
+  const columns = 3;
+  const rows = 4;
+  const itemsPerPage = columns * rows;
+  const gapX = 10;
+  const gapY = 10;
+  const printableWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+  const printableHeight = doc.page.height - doc.page.margins.top - doc.page.margins.bottom;
+  const cellWidth = (printableWidth - (columns - 1) * gapX) / columns;
+  const cellHeight = (printableHeight - (rows - 1) * gapY) / rows;
+
+  for (let i = 0; i < guests.length; i += 1) {
+    if (i > 0 && i % itemsPerPage === 0) {
+      doc.addPage();
+    }
+
+    const slot = i % itemsPerPage;
+    const row = Math.floor(slot / columns);
+    const col = slot % columns;
+    const x = doc.page.margins.left + col * (cellWidth + gapX);
+    const y = doc.page.margins.top + row * (cellHeight + gapY);
+
+    const guest = guests[i];
+    const qrDataUrl = await QRCode.toDataURL(guest.qrPayload, { width: 120, margin: 1 });
+    const qrImage = Buffer.from(qrDataUrl.replace(/^data:image\/png;base64,/, ''), 'base64');
+
+    doc
+      .roundedRect(x, y, cellWidth, cellHeight, 8)
+      .fillColor('#ffffff')
+      .fill();
+    doc
+      .roundedRect(x, y, cellWidth, cellHeight, 8)
+      .lineWidth(0.8)
+      .strokeColor('#d1d5db')
+      .stroke();
+
+    const innerPadding = 9;
+    const contentX = x + innerPadding;
+    let cursorY = y + innerPadding;
+    const textWidth = cellWidth - innerPadding * 2;
+    const headerHeight = 18;
+
+    doc.roundedRect(x + 0.6, y + 0.6, cellWidth - 1.2, headerHeight, 8).fillColor('#111827').fill();
+    doc.font('Helvetica-Bold').fontSize(7).fillColor('#f9fafb').text('CONVITE', contentX, cursorY + 5, {
+      width: textWidth,
+      align: 'center',
+    });
+    cursorY += headerHeight + 4;
+
+    doc.font('Helvetica-Bold').fontSize(9).fillColor('#111827').text(guest.name, contentX, cursorY, {
+      width: textWidth,
+      align: 'center',
+    });
+    cursorY += 20;
+
+    doc.font('Helvetica').fontSize(8).fillColor('#1f2937').text(`Código: ${guest.invitationCode}`, contentX, cursorY, {
+      width: textWidth,
+      align: 'center',
+    });
+    cursorY += 11;
+    doc.text(`Senha: ${guest.invitationPassword}`, contentX, cursorY, {
+      width: textWidth,
+      align: 'center',
+    });
+    cursorY += 14;
+
+    const companionsText = guest.companions.length
+      ? guest.companions.map((companion) => `• ${companion.name}`).join('\n')
+      : 'Sem acompanhantes';
+
+    doc.font('Helvetica-Bold').fontSize(7).fillColor('#374151').text('ACOMPANHANTES', contentX, cursorY, {
+      width: textWidth,
+      align: 'center',
+    });
+    cursorY += 9;
+
+    doc.font('Helvetica').fontSize(7).fillColor('#4b5563').text(companionsText, contentX, cursorY, {
+      width: textWidth,
+      align: 'center',
+      height: 44,
+      ellipsis: true,
+    });
+
+    const qrSize = 58;
+    const qrX = x + (cellWidth - qrSize) / 2;
+    const qrY = y + cellHeight - innerPadding - qrSize - 14;
+    doc.roundedRect(qrX - 4, qrY - 4, qrSize + 8, qrSize + 8, 5).fillColor('#f9fafb').fill();
+    doc.image(qrImage, qrX, qrY, { width: qrSize, height: qrSize });
+    doc.font('Helvetica').fontSize(6).fillColor('#6b7280').text('Acesse seu convite', contentX, qrY + qrSize + 3, {
+      width: textWidth,
+      align: 'center',
+    });
+  }
+
+  doc.end();
+  return await new Promise((resolve) => {
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+};
+
 const safeFont = (doc, fontPath, fallback = 'Helvetica') => {
   try {
     doc.font(fontPath);
